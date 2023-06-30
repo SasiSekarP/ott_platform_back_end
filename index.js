@@ -3,6 +3,12 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const cors = require("cors");
 
+// db connection
+const { MongoClient } = require("mongodb");
+
+const url = "mongodb://127.0.0.1:27017";
+// db connection
+
 // jwt below
 const jwt = require("jsonwebtoken");
 // jwt above
@@ -33,6 +39,57 @@ const checkToken = (request, response, next) => {
   }
 };
 
+// db based work
+const dbConnectionFn = async () => {
+  try {
+    const client = await MongoClient.connect(url);
+    console.log("db connction is on");
+
+    const db = client.db("ott");
+    const collectionOne = db.collection("video_collection");
+
+    app.get("/", checkToken, async (request, response) => {
+      const dataarr = await collectionOne.find({}).toArray();
+      const homeData = dataarr.map((data) => ({
+        ...data,
+        _id: data._id.toString(),
+      }));
+      response.json(homeData);
+    });
+
+    app.get("/trending", checkToken, async (request, response) => {
+      const dataArr = await collectionOne.find({ type: "trending" }).toArray();
+      const trendingData = dataArr.map((data) => ({
+        ...data,
+        _id: data._id.toString(),
+      }));
+      response.json(trendingData);
+    });
+
+    app.get("/movie", checkToken, async (request, response) => {
+      const dataArr = await collectionOne.find({ type: "movie" }).toArray();
+      const movieData = dataArr.map((data) => ({
+        ...data,
+        _id: data._id.toString(),
+      }));
+      response.json(movieData);
+    });
+
+    app.get("/game", checkToken, async (request, response) => {
+      const dataArr = await collectionOne.find({ type: "game" }).toArray();
+      const gameData = dataArr.map((data) => ({
+        ...data,
+        _id: data._id.toString(),
+      }));
+      response.json(gameData);
+    });
+  } catch (err) {
+    console.log("error", err);
+  }
+};
+
+dbConnectionFn();
+
 // this data above is used here to work back end with out database
 
 app.post("/login", (request, response) => {
@@ -51,89 +108,6 @@ app.post("/login", (request, response) => {
   } else {
     response.json({ information: "send proper data" });
   }
-});
-
-app.get("/", checkToken, (request, response) => {
-  response.json([
-    {
-      video_url: "https://www.youtube.com/watch?v=xLCn88bfW1o",
-      name: "Venom official trailer-2",
-      img_url: "https://images7.alphacoders.com/948/thumbbig-948853.webp",
-    },
-    {
-      video_url: "https://www.youtube.com/watch?v=aWzlQ2N6qqg&t=49s",
-      name: "Doctor Strange in the Multiverse of Madness",
-      img_url:
-        "https://akm-img-a-in.tosshub.com/indiatoday/images/story/202206/NJXQ8h3mUd9mhsh2m8xpba.jpg?VersionId=mVpE3eHaQw5lJN5IBfmso4J2LuW7.PqZ",
-    },
-    {
-      video_url: "https://www.youtube.com/watch?v=17ywQS6XO-M",
-      name: "Harry Potter and the Deathly Hallows Pt. 1 & 2 | Official Trailer",
-      img_url:
-        "https://lafrikileria.com/blog/wp-content/uploads/2023/02/varitas-harry-potter.jpg",
-    },
-  ]);
-});
-
-app.get("/trending", checkToken, (request, response) => {
-  response.json([
-    {
-      video_url: "https://www.youtube.com/watch?v=xLCn88bfW1o",
-      name: "Venom official trailer-2",
-      img_url: "https://images7.alphacoders.com/948/thumbbig-948853.webp",
-    },
-    {
-      video_url: "https://www.youtube.com/watch?v=aWzlQ2N6qqg&t=49s",
-      name: "Doctor Strange in the Multiverse of Madness",
-      img_url:
-        "https://akm-img-a-in.tosshub.com/indiatoday/images/story/202206/NJXQ8h3mUd9mhsh2m8xpba.jpg?VersionId=mVpE3eHaQw5lJN5IBfmso4J2LuW7.PqZ",
-    },
-    {
-      video_url: "https://www.youtube.com/watch?v=17ywQS6XO-M",
-      name: "Harry Potter and the Deathly Hallows Pt. 1 & 2 | Official Trailer",
-      img_url:
-        "https://lafrikileria.com/blog/wp-content/uploads/2023/02/varitas-harry-potter.jpg",
-    },
-  ]);
-});
-
-app.get("/movie", checkToken, (request, response) => {
-  response.json([
-    {
-      video_url: "https://www.youtube.com/watch?v=NAIzQFZACcw",
-      name: "THE DETECTIVE",
-      img_url: "https://i.ytimg.com/vi/NAIzQFZACcw/sddefault.jpg",
-    },
-    {
-      video_url: "https://www.youtube.com/watch?v=VNemf4gKeDA",
-      name: "INDO SUB (Sniper Vengeance)",
-      img_url:
-        "https://image.tmdb.org/t/p/original/4O75kTTR91as9ecAQMazZGYmXLB.jpg",
-    },
-  ]);
-});
-
-app.get("/game", checkToken, (request, response) => {
-  response.json([
-    {
-      video_url: "https://www.youtube.com/watch?v=tv7LfFeamsc",
-      name: "Call of Duty",
-      img_url:
-        "https://cdn.ytechb.com/wp-content/uploads/2019/12/Call-of-duty-ghosts-wallpaper-1.jpg",
-    },
-    {
-      video_url: "https://www.youtube.com/watch?v=4SHaDwa1J0k",
-      name: "I.G.I. Origins",
-      img_url:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTz7LA81i2onTY50jNY7N8eNKm6t_HyW3WhTQ&usqp=CAU",
-    },
-    {
-      video_url: "https://www.youtube.com/watch?v=vmH1gUJS5sw",
-      name: "BATTLESHIP: Video Game",
-      img_url:
-        "https://coolwallpapers.me/picsup/6014740-german-art-battleship-military-ship-fleet.jpg",
-    },
-  ]);
 });
 
 app.listen(PORT, () => {
